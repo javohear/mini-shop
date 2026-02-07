@@ -2,117 +2,285 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O'yinlar Do'koni</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kirish - Tasdiqlash</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* --- DIZAYN (CSS) --- */
+        :root {
+            /* Telegram ranglarini olamiz */
+            --tg-bg: var(--tg-theme-bg-color, #212121);
+            --tg-text: var(--tg-theme-text-color, #ffffff);
+            --tg-secondary: var(--tg-theme-secondary-bg-color, #333333);
+            --tg-blue: var(--tg-theme-button-color, #3390ec);
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+        }
+
         body {
-            background-color: var(--tg-theme-bg-color, #1e1e1e); /* Telegram mavzusiga moslashadi */
-            color: var(--tg-theme-text-color, #ffffff);
-            font-family: sans-serif;
             margin: 0;
             padding: 20px;
-            text-align: center;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #34b7f1;
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 ta ustun */
-            gap: 15px;
-        }
-
-        .card {
-            background-color: var(--tg-theme-secondary-bg-color, #2d2d2d);
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: scale(1.02);
-        }
-
-        .card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
+        h2 {
             margin-bottom: 10px;
+            font-size: 20px;
         }
 
-        .card h3 {
-            font-size: 16px;
-            margin: 5px 0;
+        p {
+            color: #888;
+            margin-bottom: 25px;
+            font-size: 14px;
         }
 
-        .btn {
-            background-color: #2ea6ff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+        /* Kaptcha konteyneri */
+        .captcha-container {
+            background-color: var(--tg-secondary);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             width: 100%;
-            margin-top: 5px;
+            max-width: 320px; /* Telefondagi optimal kenglik */
         }
 
-        .btn:active {
-            background-color: #1a8cd8;
+        /* Rasmlar joylashadigan joy */
+        .image-area {
+            position: relative;
+            width: 280px;
+            height: 160px;
+            margin: 0 auto 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #444;
         }
+
+        /* Orqa fon rasmi */
+        .main-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Namuna rasm (keyin o'zgartiramiz) */
+            background-image: url('https://picsum.photos/id/237/300/200'); 
+            background-size: cover;
+        }
+
+        /* Pazl bo'lagi kelib tushishi kerak bo'lgan joy (Nishon) */
+        .target-spot {
+            position: absolute;
+            top: 40px; /* Nishonning balandligi */
+            left: 180px; /* Nishonning joylashuvi (o'ngroqda) */
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Harakatlanuvchi pazl bo'lagi */
+        .puzzle-piece {
+            position: absolute;
+            top: 40px; /* Nishon bilan bir xil balandlikda bo'lishi kerak */
+            left: 10px; /* Boshlang'ich joyi (chapda) */
+            width: 50px;
+            height: 50px;
+            /* Xuddi shu rasm, lekin pozitsiyasi siljitilgan */
+            background-image: url('https://picsum.photos/id/237/300/200');
+            background-size: 280px 160px; /* Asosiy rasm o'lchamiga mos */
+            background-position: -180px -40px; /* Nishon turgan joyni kesib ko'rsatadi */
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid var(--tg-blue);
+            z-index: 2;
+            transition: transform 0.1s ease-out; /* Silliq harakat uchun */
+        }
+
+        /* Slayder qismi */
+        .slider-container {
+            position: relative;
+            width: 280px;
+            height: 50px;
+            background-color: var(--tg-bg);
+            border-radius: 25px;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .slider-track-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 50px;
+            color: #666;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Slayder tugmasi (ushlab tortiladigan) */
+        .slider-handle {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 50px;
+            background-color: var(--tg-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, transform 0.1s ease-out;
+            z-index: 3;
+        }
+        
+        .slider-handle:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        /* Muvaffaqiyatli holat */
+        .success .slider-handle { background-color: var(--success-color); }
+        .success .puzzle-piece { border-color: var(--success-color); }
+        
+        /* Xato holat */
+        .error .slider-handle { background-color: var(--error-color); }
+        .error .puzzle-piece { border-color: var(--error-color); }
+
     </style>
 </head>
 <body>
 
-    <h1>🎮 O'yinni tanlang</h1>
+    <h2>Xavfsizlik tekshiruvi</h2>
+    <p>Robot emasligingizni tasdiqlash uchun rasmni to'ldiring.</p>
 
-    <div class="container">
-        <div class="card">
-            <img src="https://cdn-icons-png.flaticon.com/512/3408/3408506.png" alt="PUBG">
-            <h3>PUBG Mobile</h3>
-            <button class="btn" onclick="sendItem('PUBG Mobile')">Tanlash</button>
+    <div class="captcha-container" id="captchaBox">
+        <div class="image-area">
+            <div class="main-image"></div>
+            <div class="target-spot"></div>
+            <div class="puzzle-piece" id="piece"></div>
         </div>
 
-        <div class="card">
-            <img src="https://cdn-icons-png.flaticon.com/512/3408/3408545.png" alt="Brawl Stars">
-            <h3>Brawl Stars</h3>
-            <button class="btn" onclick="sendItem('Brawl Stars')">Tanlash</button>
-        </div>
-
-        <div class="card">
-            <img src="https://cdn-icons-png.flaticon.com/512/2696/2696517.png" alt="FC Mobile">
-            <h3>FC Mobile</h3>
-            <button class="btn" onclick="sendItem('FC Mobile')">Tanlash</button>
-        </div>
-
-        <div class="card">
-            <img src="https://cdn-icons-png.flaticon.com/512/5228/5228802.png" alt="WoT">
-            <h3>WoT Blitz</h3>
-            <button class="btn" onclick="sendItem('WoT Blitz')">Tanlash</button>
+        <div class="slider-container" id="sliderContainer">
+            <div class="slider-track-text">O'ngga suring →</div>
+            <div class="slider-handle" id="handle">≡</div>
         </div>
     </div>
 
     <script>
         /* --- MANTIQ (JavaScript) --- */
-        let tg = window.Telegram.WebApp; // Telegram bilan ulanish
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-        tg.expand(); // Ilovani to'liq ekranga yoyish
+        const handle = document.getElementById('handle');
+        const piece = document.getElementById('piece');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const captchaBox = document.getElementById('captchaBox');
 
-        // Tugma bosilganda ishlaydigan funksiya
-        function sendItem(item_name) {
-            // Telegram botga ma'lumot yuborish
-            tg.sendData(item_name); 
-            // Web Appni yopish (xohlasangiz)
-            // tg.close();
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+
+        // NISHON JOYI (CSS dagi .target-spot left qiymati bilan bir xil bo'lishi kerak)
+        // Bizning holatda 180px. Boshlang'ich joyi 10px. Farqi: 170px.
+        const TARGET_POSITION = 170; 
+        const TOLERANCE = 10; // 10px xatolikka yo'l qo'yiladi (o'ngga yoki chapga)
+
+        const maxMove = sliderContainer.clientWidth - handle.clientWidth; // Maksimal surish masofasi
+
+        // Telefon uchun (Touch events)
+        handle.addEventListener('touchstart', startDrag, {passive: false});
+        document.addEventListener('touchmove', doDrag, {passive: false});
+        document.addEventListener('touchend', stopDrag);
+
+        // Kompyuter uchun (Mouse events - test qilishga)
+        handle.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', stopDrag);
+
+
+        function startDrag(e) {
+            if (captchaBox.classList.contains('success')) return; // Agar topib bo'lgan bo'lsa, qimirlamasin
+
+            isDragging = true;
+            // Telefon yoki sichqoncha pozitsiyasini olish
+            startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
+            captchaBox.classList.remove('error');
+            e.preventDefault(); // Telefondagi skrollni to'xtatish
         }
-    </script>
 
+        function doDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let moveX = clientX - startX;
+
+            // Chegaradan chiqib ketmasligi uchun
+            if (moveX < 0) moveX = 0;
+            if (moveX > maxMove) moveX = maxMove;
+
+            currentX = moveX;
+            updatePosition(currentX);
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            // Tekshirish: Nishonga yetib bordimi?
+            // currentX (hozirgi joyi) TARGET_POSITION (nishon) ga yaqinmi?
+            if (Math.abs(currentX - TARGET_POSITION) <= TOLERANCE) {
+                // Muvaffaqiyatli!
+                onSuccess();
+            } else {
+                // Xato! Joyiga qaytarish
+                onError();
+            }
+        }
+
+        function updatePosition(x) {
+            handle.style.transform = `translateX(${x}px)`;
+            // Pazl bo'lagi ham xuddi shuncha masofaga siljiydi
+            piece.style.transform = `translateX(${x}px)`;
+        }
+
+        function onSuccess() {
+            captchaBox.classList.add('success');
+            handle.innerHTML = "✓"; // Tugmada ptychka chiqadi
+            tg.HapticFeedback.notificationOccurred('success'); // Telefon titraydi (agar qo'llasa)
+            
+            setTimeout(() => {
+                // 1 soniyadan keyin asosiy do'kon sahifasiga o'tish kerak
+                // Hozircha shunchaki xabar chiqaramiz:
+                alert("Muvaffaqiyatli o'tdingiz! Endi do'kon ochiladi.");
+                // Keyinchalik bu yerda: window.location.href = 'shop.html'; bo'ladi
+            }, 1000);
+        }
+
+        function onError() {
+            captchaBox.classList.add('error');
+            tg.HapticFeedback.notificationOccurred('error'); // Telefon titraydi (xato)
+            
+            // 0.5 soniyadan keyin joyiga qaytarish
+            setTimeout(() => {
+                captchaBox.classList.remove('error');
+                currentX = 0;
+                updatePosition(0); // Boshiga qaytadi
+            }, 500);
+        }
+
+    </script>
 </body>
 </html>
