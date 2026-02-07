@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O'yinlar Do'koni</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* --- DIZAYN (CSS) --- */
+        body {
+            background-color: var(--tg-theme-bg-color, #1e1e1e); /* Telegram mavzusiga moslashadi */
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #34b7f1;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 ta ustun */
+            gap: 15px;
+        }
+
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #2d2d2d);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        .btn {
+            background-color: #2ea6ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .btn:active {
+            background-color: #1a8cd8;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 O'yinni tanlang</h1>
+
+    <div class="container">
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/3408/3408506.png" alt="PUBG">
+            <h3>PUBG Mobile</h3>
+            <button class="btn" onclick="sendItem('PUBG Mobile')">Tanlash</button>
+        </div>
+
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/3408/3408545.png" alt="Brawl Stars">
+            <h3>Brawl Stars</h3>
+            <button class="btn" onclick="sendItem('Brawl Stars')">Tanlash</button>
+        </div>
+
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2696/2696517.png" alt="FC Mobile">
+            <h3>FC Mobile</h3>
+            <button class="btn" onclick="sendItem('FC Mobile')">Tanlash</button>
+        </div>
+
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/5228/5228802.png" alt="WoT">
+            <h3>WoT Blitz</h3>
+            <button class="btn" onclick="sendItem('WoT Blitz')">Tanlash</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- MANTIQ (JavaScript) --- */
+        let tg = window.Telegram.WebApp; // Telegram bilan ulanish
+
+        tg.expand(); // Ilovani to'liq ekranga yoyish
+
+        // Tugma bosilganda ishlaydigan funksiya
+        function sendItem(item_name) {
+            // Telegram botga ma'lumot yuborish
+            tg.sendData(item_name); 
+            // Web Appni yopish (xohlasangiz)
+            // tg.close();
+        }
+    </script>
+
+</body>
+</html>
