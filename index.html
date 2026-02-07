@@ -65,12 +65,13 @@
 
         /* Orqa fon rasmi */
         .main-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background-image: url('bg.jpg'); /* Mana shu joyi o'zgardi */
-    background-size: cover;
-}
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* MUHIM: Rasm manzili o'zgartirildi ✅ */
+            background-image: url('bg.jpg'); 
+            background-size: cover;
+        }
 
         /* Pazl bo'lagi kelib tushishi kerak bo'lgan joy (Nishon) */
         .target-spot {
@@ -91,10 +92,10 @@
             left: 10px; /* Boshlang'ich joyi (chapda) */
             width: 50px;
             height: 50px;
-            /* Xuddi shu rasm, lekin pozitsiyasi siljitilgan */
-            background-image: url('bg.jpg'); /* Mana shu joyi ham o'zgardi */
-    background-size: 280px 160px;
-    background-position: -180px -40px;
+            /* MUHIM: Rasm manzili bu yerda ham o'zgartirildi ✅ */
+            background-image: url('bg.jpg');
+            background-size: 280px 160px; /* Asosiy rasm o'lchamiga mos */
+            background-position: -180px -40px; /* Nishon turgan joyni kesib ko'rsatadi */
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
             border: 2px solid var(--tg-blue);
             z-index: 2;
@@ -282,5 +283,4 @@
 
     </script>
 </body>
-
 </html>
