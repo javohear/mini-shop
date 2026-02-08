@@ -112,7 +112,7 @@
         
         .package-btn.full-width { grid-column: span 2; }
         
-        /* HEADER STILI (Steam va PUBG uchun) */
+        /* HEADER STILI */
         .package-header {
             grid-column: span 1; 
             background-color: transparent;
@@ -126,7 +126,7 @@
             pointer-events: none;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             margin-top: 10px;
-            line-height: 1.4; /* Uzun matnlar uchun */
+            line-height: 1.4;
         }
 
         .package-btn { background-color: var(--card-bg); border: 2px solid transparent; padding: 15px; border-radius: 12px; color: white; cursor: pointer; text-align: center; }
@@ -196,30 +196,6 @@
                 <img src="resources/pubglogo.jpg" alt="PUBG">
                 <h3>PUBG Mobile</h3>
                 <button class="btn-buy" onclick="openDetail('PUBG Mobile', 'id')">Tanlash</button>
-            </div>
-            
-            <div class="card">
-                <img src="resources/brawlstars.jpg" alt="Brawl">
-                <h3>Brawl Stars</h3>
-                <button class="btn-buy" onclick="openDetail('Brawl Stars', 'tag')">Tanlash</button>
-            </div>
-            
-            <div class="card">
-                <img src="resources/wot.jpg" alt="WoT">
-                <h3>World of Tanks</h3>
-                <button class="btn-buy" onclick="openDetail('World of Tanks', 'id')">Tanlash</button>
-            </div>
-            
-            <div class="card">
-                <img src="resources/mlbb.jpg" alt="MLBB">
-                <h3>Mobile Legends</h3>
-                <button class="btn-buy" onclick="openDetail('Mobile Legends', 'id')">Tanlash</button>
-            </div>
-            
-            <div class="card">
-                <img src="resources/coc.jpg" alt="COC">
-                <h3>Clash of Clans</h3>
-                <button class="btn-buy" onclick="openDetail('Clash of Clans', 'tag')">Tanlash</button>
             </div>
         </div>
     </div>
@@ -307,7 +283,7 @@
             setTimeout(() => { screenWelcome.style.opacity = '0'; setTimeout(() => { screenWelcome.style.display = 'none'; screenShop.style.display = 'block'; screenShop.style.opacity = '1'; }, 500); }, 2500);
         }
 
-        // --- NARXLAR VA MA'LUMOTLAR ---
+        // --- NARXLAR VA MA'LUMOTLAR (FAQAT 4 TA O'YIN) ---
         const products = {
             'Telegram Premium': [
                 {name: '🎁 3 oylik', price: '170 000'},
@@ -361,18 +337,6 @@
                 {name: '8100 UC', price: '1 265 000'}
             ],
             
-            'Brawl Stars': [
-                {name: '30 Gems', price: '17 000'},
-                {name: '80 Gems', price: '40 000'},
-                {name: '170 Gems', price: '76 000'},
-                {name: 'Brawl Pass', price: '100 000'}
-            ],
-
-            // --- BU O'YINLAR VAQTINCHA BO'SH (DEFAULT YO'Q) ---
-            'World of Tanks': [],
-            'Mobile Legends': [],
-            'Clash of Clans': [],
-
             'default': [
                 {name: 'Kichik Paket', price: '15 000'},
                 {name: 'O\'rta Paket', price: '45 000'},
