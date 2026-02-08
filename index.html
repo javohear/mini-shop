@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mini Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* --- UMUMIY DIZAYN --- */
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #212121);
+            --tg-text: var(--tg-theme-text-color, #ffffff);
+            --tg-blue: var(--tg-theme-button-color, #3390ec);
+            --card-bg: var(--tg-theme-secondary-bg-color, #2d2d2d);
+            --input-bg: #3a3a3a;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            user-select: none; /* Matn belgilanishini oldini oladi */
+            -webkit-user-select: none;
+        }
+
+        .screen {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            position: absolute; top: 0; left: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* --- 1. CAPTCHA DIZAYNI --- */
+        #screen-captcha { z-index: 10; justify-content: center; }
+        .captcha-container { background-color: var(--card-bg); padding: 20px; border-radius: 16px; width: 90%; max-width: 320px; text-align: center; }
+        
+        .image-area { 
+            position: relative; width: 280px; height: 160px; 
+            margin: 0 auto 20px auto; border-radius: 12px; overflow: hidden; 
+        }
+        
+        /* MUHIM: Rasm yo'li 'resources/' papkasiga yo'naltirildi */
+        .main-image { 
+            width: 100%; height: 100%; 
+            background-image: url('resources/bg.jpg'); 
+            background-size: cover; object-fit: cover;
+        }
+        
+        .target-spot { position: absolute; top: 40px; left: 180px; width: 50px; height: 50px; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2); }
+        
+        /* MUHIM: Rasm yo'li 'resources/' papkasiga yo'naltirildi */
+        .puzzle-piece { 
+            position: absolute; top: 40px; left: 10px; width: 50px; height: 50px; 
+            background-image: url('resources/bg.jpg'); 
+            background-size: 280px 160px; background-position: -180px -40px; 
+            border: 2px solid var(--tg-blue); z-index: 2; 
+        }
+        
+        .slider-container { position: relative; width: 280px; height: 50px; background: var(--tg-bg); border-radius: 25px; margin: 0 auto; }
+        .slider-handle { 
+            position: absolute; left: 0; top: 0; width: 50px; height: 50px; 
+            background: var(--tg-blue); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-size: 20px; cursor: grab;
+            touch-action: none; /* Telefonda surishni to'g'irlaydi */
+        }
+        
+        /* --- 2. WELCOME --- */
+        #screen-welcome { z-index: 9; display: none; justify-content: center; text-align: center; }
+        .welcome-text { font-size: 28px; font-weight: bold; color: var(--tg-blue); animation: fadeIn 1s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 3. SHOP --- */
+        #screen-shop {
+            background-color: var(--tg-bg);
+            z-index: 5;
+            display: none; 
+            padding-top: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+        .shop-header { text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: bold; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 15px 80px 15px; width: 100%; box-sizing: border-box; }
+        .card { background-color: var(--card-bg); border-radius: 15px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .card img { width: 70px; height: 70px; border-radius: 14px; margin-bottom: 10px; object-fit: cover; }
+        .card h3 { font-size: 14px; margin: 5px 0; color: var(--tg-text); }
+        .btn-buy { background-color: var(--tg-blue); color: white; border: none; padding: 10px 0; width: 100%; border-radius: 8px; margin-top: 8px; font-weight: bold; cursor: pointer; }
+
+        /* --- 4. DETAIL --- */
+        #screen-detail {
+            background-color: var(--tg-bg);
+            z-index: 20;
+            transform: translateX(100%);
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+        }
+
+        .detail-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; }
+        .back-btn { background: none; border: none; color: var(--tg-text); font-size: 24px; cursor: pointer; margin-right: 15px; }
+        .game-title { font-size: 22px; font-weight: bold; }
+
+        .input-group { width: 100%; margin-bottom: 25px; }
+        .input-label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
+        .input-field { 
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444; 
+            background-color: var(--input-bg); color: white; font-size: 16px; outline: none; box-sizing: border-box;
+        }
+        .input-field:focus { border-color: var(--tg-blue); }
+
+        .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 20px; }
+        .package-btn { 
+            background-color: var(--card-bg); border: 2px solid transparent; 
+            padding: 15px; border-radius: 12px; color: white; cursor: pointer; text-align: center;
+        }
+        .package-btn.active { border-color: var(--tg-blue); background-color: rgba(51, 144, 236, 0.1); }
+        .package-price { display: block; font-size: 12px; color: #aaa; margin-top: 5px; }
+
+        .main-action-btn {
+            width: 100%; padding: 15px; background-color: var(--tg-blue); color: white;
+            border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer;
+            margin-top: auto; opacity: 0.5; pointer-events: none; transition: opacity 0.3s;
+        }
+        .main-action-btn.active { opacity: 1; pointer-events: all; }
+
+    </style>
+</head>
+<body>
+
+    <div id="screen-captcha" class="screen">
+        <h2>Xavfsizlik</h2>
+        <p style="color:#888; margin-bottom: 20px;">Robot emasligingizni tasdiqlang</p>
+        <div class="captcha-container" id="captchaBox">
+            <div class="image-area">
+                <div class="main-image"></div>
+                <div class="target-spot"></div>
+                <div class="puzzle-piece" id="piece"></div>
+            </div>
+            <div class="slider-container" id="sliderContainer">
+                <div class="slider-handle" id="handle">➜</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-welcome" class="screen">
+        <div class="welcome-text">Do'konga xush kelibsiz! 👋</div>
+    </div>
+
+    <div id="screen-shop" class="screen">
+        <div class="shop-header">💎 Ommabop Xizmatlar</div>
+        <div class="grid-container">
+            <div class="card">
+                <img src="resources/tgprem.jpg" alt="Premium">
+                <h3>Telegram Premium</h3>
+                <button class="btn-buy" onclick="openDetail('Telegram Premium', 'username')">Tanlash</button>
+            </div>
+            
+            <div class="card">
+                <img src="resources/tgstars.jpg" alt="Stars">
+                <h3>Telegram Stars</h3>
+                <button class="btn-buy" onclick="openDetail('Telegram Stars', 'username')">Tanlash</button>
+            </div>
+
+            <div class="card">
+                <img src="resources/steamlogo.jpg" alt="Steam">
+                <h3>Steam Wallet</h3>
+                <button class="btn-buy" onclick="openDetail('Steam Wallet', 'login')">Tanlash</button>
+            </div>
+
+            <div class="card">
+                <img src="resources/pubglogo.jpg" alt="PUBG">
+                <h3>PUBG Mobile</h3>
+                <button class="btn-buy" onclick="openDetail('PUBG Mobile', 'id')">Tanlash</button>
+            </div>
+            
+            <div class="card">
+                <img src="resources/brawlstars.jpg" alt="Brawl">
+                <h3>Brawl Stars</h3>
+                <button class="btn-buy" onclick="openDetail('Brawl Stars', 'tag')">Tanlash</button>
+            </div>
+            
+            <div class="card">
+                <img src="resources/wot.jpg" alt="WoT">
+                <h3>World of Tanks</h3>
+                <button class="btn-buy" onclick="openDetail('World of Tanks', 'id')">Tanlash</button>
+            </div>
+            
+            <div class="card">
+                <img src="resources/mlbb.jpg" alt="MLBB">
+                <h3>Mobile Legends</h3>
+                <button class="btn-buy" onclick="openDetail('Mobile Legends', 'id')">Tanlash</button>
+            </div>
+            
+            <div class="card">
+                <img src="resources/coc.jpg" alt="COC">
+                <h3>Clash of Clans</h3>
+                <button class="btn-buy" onclick="openDetail('Clash of Clans', 'tag')">Tanlash</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-detail" class="screen">
+        <div class="detail-header">
+            <button class="back-btn" onclick="closeDetail()">←</button>
+            <span class="game-title" id="detailTitle">Game Name</span>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label" id="inputLabel">ID raqamingiz</label>
+            <input type="text" class="input-field" id="userIdInput" placeholder="Kriting...">
+        </div>
+
+        <label class="input-label">Paketni tanlang:</label>
+        <div class="packages-grid" id="packagesContainer"></div>
+
+        <button class="main-action-btn" id="buyBtn" onclick="sendOrder()">Sotib Olish</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Elementlar
+        const screenCaptcha = document.getElementById('screen-captcha');
+        const screenWelcome = document.getElementById('screen-welcome');
+        const screenShop = document.getElementById('screen-shop');
+        const screenDetail = document.getElementById('screen-detail');
+        
+        // --- CAPTCHA ---
+        const handle = document.getElementById('handle');
+        const piece = document.getElementById('piece');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const captchaBox = document.getElementById('captchaBox');
+        let isDragging = false; let startX = 0; let currentX = 0;
+        const TARGET_POSITION = 170; const TOLERANCE = 10;
+        const maxMove = sliderContainer.clientWidth - handle.clientWidth;
+
+        handle.addEventListener('touchstart', startDrag, {passive: false});
+        handle.addEventListener('touchmove', doDrag, {passive: false});
+        handle.addEventListener('touchend', stopDrag);
+        handle.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', stopDrag);
+
+        function startDrag(e) {
+            if (captchaBox.classList.contains('success')) return;
+            isDragging = true; startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
+        }
+        function doDrag(e) {
+            if (!isDragging) return; e.preventDefault();
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let moveX = clientX - startX;
+            if (moveX < 0) moveX = 0; if (moveX > maxMove) moveX = maxMove;
+            currentX = moveX; handle.style.transform = `translateX(${currentX}px)`; piece.style.transform = `translateX(${currentX}px)`;
+        }
+        function stopDrag() {
+            if (!isDragging) return; isDragging = false;
+            if (Math.abs(currentX - TARGET_POSITION) <= TOLERANCE) onSuccess();
+            else { handle.style.transform = `translateX(0px)`; piece.style.transform = `translateX(0px)`; currentX = 0; tg.HapticFeedback.notificationOccurred('error'); }
+        }
+
+        function onSuccess() {
+            captchaBox.classList.add('success'); handle.innerHTML = "✓"; handle.style.backgroundColor = "#4CAF50"; tg.HapticFeedback.notificationOccurred('success');
+            setTimeout(() => { screenCaptcha.style.opacity = '0'; setTimeout(() => { screenCaptcha.style.display = 'none'; screenWelcome.style.display = 'flex'; setTimeout(() => screenWelcome.style.opacity = '1', 50); }, 500); }, 500);
+            setTimeout(() => { screenWelcome.style.opacity = '0'; setTimeout(() => { screenWelcome.style.display = 'none'; screenShop.style.display = 'block'; screenShop.style.opacity = '1'; }, 500); }, 2500);
+        }
+
+        // --- DETAIL PAGE LOGIKASI ---
+        
+        const products = {
+            'Steam Wallet': [
+                {name: '1 USD', price: '14 000'},
+                {name: '5 USD', price: '68 000'},
+                {name: '10 USD', price: '135 000'},
+                {name: '20 USD', price: '270 000'}
+            ],
+            'PUBG Mobile': [
+                {name: '60 UC', price: '12 000'},
+                {name: '325 UC', price: '58 000'},
+                {name: '660 UC', price: '115 000'},
+                {name: '1800 UC', price: '290 000'}
+            ],
+            'Telegram Stars': [
+                {name: '50 Stars', price: '15 000'},
+                {name: '100 Stars', price: '28 000'},
+                {name: '500 Stars', price: '115 000'},
+                {name: '1000 Stars', price: '235 000'}
+            ],
+            'Brawl Stars': [
+                {name: '30 Gems', price: '17 000'},
+                {name: '80 Gems', price: '40 000'},
+                {name: '170 Gems', price: '76 000'},
+                {name: 'Brawl Pass', price: '100 000'}
+            ],
+            'default': [
+                {name: 'Kichik Paket', price: '15 000'},
+                {name: 'O\'rta Paket', price: '45 000'},
+                {name: 'Katta Paket', price: '100 000'}
+            ]
+        };
+
+        let selectedItem = null;
+        let selectedPackage = null;
+
+        function openDetail(title, inputType) {
+            document.getElementById('detailTitle').innerText = title;
+            selectedItem = title;
+            selectedPackage = null;
+            document.getElementById('buyBtn').classList.remove('active');
+            document.getElementById('userIdInput').value = '';
+
+            const label = document.getElementById('inputLabel');
+            if (inputType === 'username') label.innerText = "Telegram Username (@siz)";
+            else if (inputType === 'tag') label.innerText = "Player Tag (#ABC)";
+            else if (inputType === 'login') label.innerText = "Steam Login";
+            else label.innerText = "ID Raqamingiz";
+
+            const container = document.getElementById('packagesContainer');
+            container.innerHTML = '';
+            
+            const list = products[title] || products['default'];
+            list.forEach(pkg => {
+                const btn = document.createElement('div');
+                btn.className = 'package-btn';
+                btn.innerHTML = `<div>${pkg.name}</div><span class="package-price">${pkg.price} so'm</span>`;
+                btn.onclick = () => selectPackage(btn, pkg);
+                container.appendChild(btn);
+            });
+
+            screenDetail.style.transform = "translateX(0%)";
+        }
+
+        function closeDetail() {
+            screenDetail.style.transform = "translateX(100%)";
+        }
+
+        function selectPackage(btn, pkg) {
+            document.querySelectorAll('.package-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPackage = pkg;
+            checkButton();
+        }
+
+        const userIdInput = document.getElementById('userIdInput');
+        userIdInput.addEventListener('input', checkButton);
+
+        function checkButton() {
+            const btn = document.getElementById('buyBtn');
+            if (selectedPackage && userIdInput.value.length > 2) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function sendOrder() {
+            if (!selectedPackage) return;
+            const data = JSON.stringify({
+                game: selectedItem,
+                id: userIdInput.value,
+                pack: selectedPackage.name,
+                price: selectedPackage.price
+            });
+            tg.sendData(data); 
+        }
+    </script>
+</body>
+</html>
