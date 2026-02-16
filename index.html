@@ -103,12 +103,12 @@
         .detail-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; flex-shrink: 0; }
         .back-btn { background: none; border: none; color: var(--tg-text); font-size: 24px; cursor: pointer; margin-right: 15px; }
         .game-title { font-size: 22px; font-weight: bold; }
-        .input-group { width: 100%; margin-bottom: 25px; flex-shrink: 0; }
+        .input-group { width: 100%; margin-bottom: 20px; flex-shrink: 0; }
         .input-label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
         .input-field { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444; background-color: var(--input-bg); color: white; font-size: 16px; outline: none; box-sizing: border-box; }
         .input-field:focus { border-color: var(--tg-blue); }
         
-        .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 20px; flex-shrink: 0; }
+        .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 15px; flex-shrink: 0; }
         
         .package-btn.full-width { grid-column: span 2; }
         
@@ -172,7 +172,7 @@
     </div>
 
     <div id="screen-shop" class="screen">
-        <div class="shop-header">💎 Ommabop Xizmatlar</div>
+        <div class="shop-header">ToWe market</div>
         <div class="grid-container">
             <div class="card">
                 <img src="resources/tgprem.jpg" alt="Premium">
@@ -197,6 +197,12 @@
                 <h3>PUBG Mobile</h3>
                 <button class="btn-buy" onclick="openDetail('PUBG Mobile', 'id')">Tanlash</button>
             </div>
+
+            <div class="card">
+                <img src="resources/tggift.png" alt="Gifts">
+                <h3>Telegram Gifts</h3>
+                <button class="btn-buy" onclick="openDetail('Telegram Gifts', 'username')">Tanlash</button>
+            </div>
         </div>
     </div>
 
@@ -213,6 +219,11 @@
 
         <label class="input-label" id="packageLabel">Paketni tanlang:</label>
         <div class="packages-grid" id="packagesContainer"></div>
+
+        <div class="input-group" id="commentGroup" style="display: none; margin-bottom: 20px;">
+            <label class="input-label">Sovg'a uchun izohingiz bo'lsa shuyerga yozishingiz mumkin👇🏻</label>
+            <input type="text" class="input-field" id="commentInput" placeholder="Izoh (ixtiyoriy)...">
+        </div>
 
         <button class="main-action-btn" id="buyBtn" onclick="sendOrder()">Sotib Olish</button>
     </div>
@@ -283,7 +294,7 @@
             setTimeout(() => { screenWelcome.style.opacity = '0'; setTimeout(() => { screenWelcome.style.display = 'none'; screenShop.style.display = 'block'; screenShop.style.opacity = '1'; }, 500); }, 2500);
         }
 
-        // --- NARXLAR VA MA'LUMOTLAR (FAQAT 4 TA O'YIN) ---
+        // --- NARXLAR VA MA'LUMOTLAR ---
         const products = {
             'Telegram Premium': [
                 {name: '🎁 3 oylik', price: '170 000'},
@@ -308,19 +319,14 @@
             ],
             
             'Steam Wallet': [
-                // 1-10 USD
                 {name: '📉 1-10 USD KURSi: 16,000', type: 'header'}, 
                 {name: '💲 1 USD', price: '16 000'},
                 {name: '💲 5 USD', price: '80 000'},
                 {name: '💲 9 USD', price: '144 000'},
-
-                // 10-100 USD
                 {name: '📉 10-100 USD KURSi: 15,000', type: 'header'},
                 {name: '💲 10 USD', price: '150 000'},
                 {name: '💲 50 USD', price: '750 000'},
                 {name: '💲 99 USD', price: '1 485 000'},
-
-                // 100+ USD
                 {name: '📉 100+ USD KURS: 14,500', type: 'header'},
                 {name: '💲 100 USD', price: '1 450 000'},
                 {name: '💲 500 USD', price: '7 250 000'},
@@ -337,10 +343,27 @@
                 {name: '8100 UC', price: '1 265 000'}
             ],
             
+            'Telegram Gifts': [
+                {name: '⭐️ 15 Stars', type: 'header'},
+                {name: '🧸 Teddy', price: '4 000'},
+                {name: '💝 Valentine box', price: '4 000'},
+                
+                {name: '⭐️ 25 Stars', type: 'header'},
+                {name: '🎁 Sovg\'a qutisi', price: '6 000'},
+                {name: '🌹 Atirgul', price: '6 000'},
+                
+                {name: '⭐️ 50 Stars', type: 'header'},
+                {name: '🎂 Tort', price: '13 000'},
+                {name: '🚀 Raketa', price: '13 000'},
+                
+                {name: '⭐️ 100 Stars', type: 'header'},
+                {name: '💎 Diamond', price: '17 000'},
+                {name: '🏆 Kubok', price: '17 000'}
+            ],
+
             'default': [
                 {name: 'Kichik Paket', price: '15 000'},
-                {name: 'O\'rta Paket', price: '45 000'},
-                {name: 'Katta Paket', price: '100 000'}
+                {name: 'O\'rta Paket', price: '45 000'}
             ]
         };
 
@@ -353,24 +376,30 @@
             selectedPackage = null;
             document.getElementById('buyBtn').classList.remove('active');
             document.getElementById('userIdInput').value = '';
+            document.getElementById('commentInput').value = ''; // Izohni tozalash
 
             const label = document.getElementById('inputLabel');
+            const commentGroup = document.getElementById('commentGroup');
             
             if (inputType === 'username') label.innerText = "Telegram Username (@...)";
             else if (inputType === 'tag') label.innerText = "Player Tag (#ABC)";
             else if (inputType === 'login') label.innerText = "Steam Login";
             else label.innerText = "ID Raqamingiz";
 
-            if (title === 'Telegram Premium' || title === 'Telegram Stars') {
+            if (title === 'Telegram Gifts') {
+                packageLabel.innerText = "Giftni tanlang:";
+                commentGroup.style.display = 'block'; // Gifts tanlanganda izoh oynasi ko'rinadi
+            } else if (title === 'Telegram Premium' || title === 'Telegram Stars') {
                 packageLabel.innerText = "Taklifni tanlang:";
+                commentGroup.style.display = 'none'; // Boshqalarida yashiriladi
             } else {
                 packageLabel.innerText = "Paketni tanlang:";
+                commentGroup.style.display = 'none'; // Boshqalarida yashiriladi
             }
 
             const container = document.getElementById('packagesContainer');
             
-            // --- O'ZGARISH: STEAM, PREMIUM va PUBG = 1 USTUN (Tagma-tag) ---
-            if (title === 'Telegram Premium' || title === 'Steam Wallet' || title === 'PUBG Mobile') {
+            if (title === 'Telegram Premium' || title === 'Steam Wallet' || title === 'PUBG Mobile' || title === 'Telegram Gifts') {
                 container.style.gridTemplateColumns = "1fr"; 
             } else {
                 container.style.gridTemplateColumns = "1fr 1fr"; 
@@ -380,7 +409,6 @@
             
             const list = products[title] || products['default'];
             list.forEach(pkg => {
-                // HEADER LOGIKASI
                 if (pkg.type === 'header') {
                     const div = document.createElement('div');
                     div.className = 'package-header';
@@ -418,25 +446,19 @@
 
         function checkButton() {
             const btn = document.getElementById('buyBtn');
-            let inputValue = userIdInput.value.trim(); // Bo'shliqlarni olib tashlaymiz
+            let inputValue = userIdInput.value.trim(); 
             let isValid = false;
 
-            // Agar Telegram xizmatlari tanlangan bo'lsa
-            if (selectedItem === 'Telegram Premium' || selectedItem === 'Telegram Stars') {
-                // @ bilan boshlanishi va kamida 5 ta belgi bo'lishi shart (masalan: @abcd)
+            if (selectedItem === 'Telegram Premium' || selectedItem === 'Telegram Stars' || selectedItem === 'Telegram Gifts') {
                 if (inputValue.startsWith('@') && inputValue.length >= 5) {
                     isValid = true;
                 }
-            } 
-            // Agar boshqa o'yinlar (PUBG, Steam) bo'lsa
-            else {
-                // Ularga eski qoida: kamida 3 ta belgi
+            } else {
                 if (inputValue.length > 2) {
                     isValid = true;
                 }
             }
 
-            // Agar ham paket tanlangan, ham ID/Username to'g'ri bo'lsa, tugmani yoqamiz
             if (selectedPackage && isValid) {
                 btn.classList.add('active');
             } else {
@@ -450,7 +472,8 @@
                 game: selectedItem,
                 id: userIdInput.value,
                 pack: selectedPackage.name,
-                price: selectedPackage.price
+                price: selectedPackage.price,
+                comment: document.getElementById('commentInput').value.trim() // Izoh ma'lumoti
             });
             tg.sendData(data); 
         }
