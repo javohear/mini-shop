@@ -220,9 +220,14 @@
         <label class="input-label" id="packageLabel">Paketni tanlang:</label>
         <div class="packages-grid" id="packagesContainer"></div>
 
-        <div class="input-group" id="commentGroup" style="display: none; margin-bottom: 20px;">
+        <div class="input-group" id="commentGroup" style="display: none; margin-bottom: 15px;">
             <label class="input-label">Sovg'a uchun izohingiz bo'lsa shuyerga yozishingiz mumkin👇🏻</label>
             <input type="text" class="input-field" id="commentInput" placeholder="Izoh (ixtiyoriy)...">
+        </div>
+
+        <div class="input-group" id="anonymousGroup" style="display: none; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--input-bg); padding: 15px; border-radius: 10px; border: 1px solid #444; margin-bottom: 20px;">
+            <label style="color: white; font-size: 16px; margin: 0;">🕵️‍♂️ Anonim yuborish</label>
+            <input type="checkbox" id="anonymousCheckbox" style="width: 20px; height: 20px; accent-color: var(--tg-blue);">
         </div>
 
         <button class="main-action-btn" id="buyBtn" onclick="sendOrder()">Sotib Olish</button>
@@ -244,15 +249,9 @@
         const bgVideo = document.getElementById('bgVideo');
         bgVideo.playbackRate = 3.0; 
 
-        // --- OVOZNI BOSHQARISH ---
         function toggleMute() {
-            if (bgMusic.paused) {
-                bgMusic.play();
-                muteBtn.innerText = "🔊";
-            } else {
-                bgMusic.pause();
-                muteBtn.innerText = "🔇";
-            }
+            if (bgMusic.paused) { bgMusic.play(); muteBtn.innerText = "🔊"; } 
+            else { bgMusic.pause(); muteBtn.innerText = "🔇"; }
         }
 
         // --- CAPTCHA ---
@@ -271,22 +270,9 @@
         document.addEventListener('mousemove', doDrag);
         document.addEventListener('mouseup', stopDrag);
 
-        function startDrag(e) {
-            if (captchaBox.classList.contains('success')) return;
-            isDragging = true; startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
-        }
-        function doDrag(e) {
-            if (!isDragging) return; e.preventDefault();
-            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            let moveX = clientX - startX;
-            if (moveX < 0) moveX = 0; if (moveX > maxMove) moveX = maxMove;
-            currentX = moveX; handle.style.transform = `translateX(${currentX}px)`; piece.style.transform = `translateX(${currentX}px)`;
-        }
-        function stopDrag() {
-            if (!isDragging) return; isDragging = false;
-            if (Math.abs(currentX - TARGET_POSITION) <= TOLERANCE) onSuccess();
-            else { handle.style.transform = `translateX(0px)`; piece.style.transform = `translateX(0px)`; currentX = 0; tg.HapticFeedback.notificationOccurred('error'); }
-        }
+        function startDrag(e) { if (captchaBox.classList.contains('success')) return; isDragging = true; startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX; }
+        function doDrag(e) { if (!isDragging) return; e.preventDefault(); let clientX = e.touches ? e.touches[0].clientX : e.clientX; let moveX = clientX - startX; if (moveX < 0) moveX = 0; if (moveX > maxMove) moveX = maxMove; currentX = moveX; handle.style.transform = `translateX(${currentX}px)`; piece.style.transform = `translateX(${currentX}px)`; }
+        function stopDrag() { if (!isDragging) return; isDragging = false; if (Math.abs(currentX - TARGET_POSITION) <= TOLERANCE) onSuccess(); else { handle.style.transform = `translateX(0px)`; piece.style.transform = `translateX(0px)`; currentX = 0; tg.HapticFeedback.notificationOccurred('error'); } }
 
         function onSuccess() {
             captchaBox.classList.add('success'); handle.innerHTML = "✓"; handle.style.backgroundColor = "#4CAF50"; tg.HapticFeedback.notificationOccurred('success');
@@ -376,10 +362,12 @@
             selectedPackage = null;
             document.getElementById('buyBtn').classList.remove('active');
             document.getElementById('userIdInput').value = '';
-            document.getElementById('commentInput').value = ''; // Izohni tozalash
+            document.getElementById('commentInput').value = ''; 
+            document.getElementById('anonymousCheckbox').checked = false; // Checkboxni tozalash
 
             const label = document.getElementById('inputLabel');
             const commentGroup = document.getElementById('commentGroup');
+            const anonymousGroup = document.getElementById('anonymousGroup');
             
             if (inputType === 'username') label.innerText = "Telegram Username (@...)";
             else if (inputType === 'tag') label.innerText = "Player Tag (#ABC)";
@@ -388,13 +376,16 @@
 
             if (title === 'Telegram Gifts') {
                 packageLabel.innerText = "Giftni tanlang:";
-                commentGroup.style.display = 'block'; // Gifts tanlanganda izoh oynasi ko'rinadi
+                commentGroup.style.display = 'block'; 
+                anonymousGroup.style.display = 'flex'; // Anonim tugmasi ko'rinadi
             } else if (title === 'Telegram Premium' || title === 'Telegram Stars') {
                 packageLabel.innerText = "Taklifni tanlang:";
-                commentGroup.style.display = 'none'; // Boshqalarida yashiriladi
+                commentGroup.style.display = 'none'; 
+                anonymousGroup.style.display = 'none';
             } else {
                 packageLabel.innerText = "Paketni tanlang:";
-                commentGroup.style.display = 'none'; // Boshqalarida yashiriladi
+                commentGroup.style.display = 'none'; 
+                anonymousGroup.style.display = 'none';
             }
 
             const container = document.getElementById('packagesContainer');
@@ -473,7 +464,8 @@
                 id: userIdInput.value,
                 pack: selectedPackage.name,
                 price: selectedPackage.price,
-                comment: document.getElementById('commentInput').value.trim() // Izoh ma'lumoti
+                comment: document.getElementById('commentInput').value.trim(),
+                is_anonymous: document.getElementById('anonymousCheckbox').checked // Anonim holatini yuborish
             });
             tg.sendData(data); 
         }
